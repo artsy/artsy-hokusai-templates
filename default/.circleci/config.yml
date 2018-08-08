@@ -53,3 +53,4 @@ workflows:
               only: master
           requires:
             - push
+
