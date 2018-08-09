@@ -1,0 +1,9 @@
+---
+version: '2'
+services:
+  {{ project_name }}:
+    build:
+      context: ../
+      args:
+        BUNDLE_GITHUB__COM: ${BUNDLE_GITHUB__COM}
+

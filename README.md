@@ -12,10 +12,10 @@ Application developers can set up a project by specifying which target directory
 
 ### tl;dr
 
-Bootstrap a Hokusai project with our `default` settings:
+Bootstrap a Rails/Unicorn project:
 
 ```shell
-hokusai setup --template-remote git@github.com:artsy/artsy-hokusai-templates.git --template-dir default
+hokusai setup --template-remote git@github.com:artsy/artsy-hokusai-templates.git --template-dir rails-unicorn
 ```
 
 ## Template directory structure

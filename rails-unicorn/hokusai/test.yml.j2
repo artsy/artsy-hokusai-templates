@@ -1,0 +1,21 @@
+---
+version: '2'
+services:
+  {{ project_name }}:
+    command: ./hokusai/ci.sh
+    depends_on:
+    - {{ project_name }}-redis
+    environment:
+    - RAILS_ENV=test
+    - REDIS_URL=redis://{{ project_name }}-redis
+    - SPEC_FILES=$SPEC_FILES
+    - CIRCLE_NODE_INDEX=$CIRCLE_NODE_INDEX
+    - CIRCLE_TEST_REPORTS=$CIRCLE_TEST_REPORTS
+    - RSPEC_RETRY=$RSPEC_RETRY
+    - BUNDLE_GITHUB__COM=$BUNDLE_GITHUB__COM
+    extends:
+      file: build.yml
+      service: {{ project_name }}
+  {{ project_name }}-redis:
+    image: redis:3.2-alpine
+
