@@ -43,7 +43,11 @@ spec:
               value: https
           initialDelaySeconds: 5
           periodSeconds: 5
-      dnsPolicy: Default
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+        - name: ndots
+          value: "1"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:

@@ -61,11 +61,7 @@ workflows:
   version: 2
   default:
     jobs:
-      - test:
-          filters:
-            branches:
-              only:
-                - master
+      - test
       - push:
           filters:
             branches:
