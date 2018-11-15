@@ -20,14 +20,14 @@ spec:
       name: {{ project_name }}-web
     spec:
       containers:
-      - name: {{ project_name }}-web
-        envFrom:
-        - configMapRef:
-            name: {{ project_name }}-environment
-        image: {{ project_repo }}:production
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
+        - name: {{ project_name }}-web
+          envFrom:
+            - configMapRef:
+                name: {{ project_name }}-environment
+          image: {{ project_repo }}:production
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -40,9 +40,9 @@ metadata:
   namespace: default
 spec:
   ports:
-  - port: 80
-    protocol: TCP
-    targetPort: 80
+    - port: 80
+      protocol: TCP
+      targetPort: 80
   selector:
     app: {{ project_name }}
     component: web

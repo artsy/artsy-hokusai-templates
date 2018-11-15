@@ -20,43 +20,43 @@ spec:
       name: {{ project_name }}-web
     spec:
       containers:
-      - name: {{ project_name }}-web
-        envFrom:
-        - configMapRef:
-            name: {{ project_name }}-environment
-        image: {{ project_repo }}:production
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 3000
-        resources:
-          requests:
-            cpu: 500m
-            memory: 768Mi
-          limits:
-            memory: 1Gi
-        readinessProbe:
-          httpGet:
-            port: 3000
-            path: /health
-            httpHeaders:
-            - name: X-FORWARDED-PROTO
-              value: https
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: {{ project_name }}-web
+          envFrom:
+            - configMapRef:
+                name: {{ project_name }}-environment
+          image: {{ project_repo }}:production
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: 500m
+              memory: 768Mi
+            limits:
+              memory: 1Gi
+          readinessProbe:
+            httpGet:
+              port: 3000
+              path: /health
+              httpHeaders:
+                - name: X-FORWARDED-PROTO
+                  value: https
+            initialDelaySeconds: 5
+            periodSeconds: 5
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
-        - name: ndots
-          value: "1"
+          - name: ndots
+            value: "1"
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-            - matchExpressions:
-              - key: tier
-                operator: In
-                values:
-                - foreground
+              - matchExpressions:
+                - key: tier
+                  operator: In
+                  values:
+                    - foreground
 
 ---
 apiVersion: v1
@@ -77,14 +77,14 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "300"
 spec:
   ports:
-  - port: 443
-    protocol: TCP
-    name: https
-    targetPort: 3000
-  - port: 80
-    protocol: TCP
-    name: http
-    targetPort: 3000
+    - port: 443
+      protocol: TCP
+      name: https
+      targetPort: 3000
+    - port: 80
+      protocol: TCP
+      name: http
+      targetPort: 3000
   selector:
     app: {{ project_name }}
     layer: application
