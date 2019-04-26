@@ -2,13 +2,8 @@
 version: '2'
 services:
   {{ project_name }}:
-    command: ./script/ci.sh
-    environment:
-      - RAILS_ENV=test
-      - SPEC_FILES=$SPEC_FILES
-      - CIRCLE_NODE_INDEX=$CIRCLE_NODE_INDEX
-      - CIRCLE_TEST_REPORTS=$CIRCLE_TEST_REPORTS
-      - RSPEC_RETRY=$RSPEC_RETRY
+    command: ["bundle", "exec", "rspec"]
+    env_file: .env.test
     extends:
       file: build.yml
       service: {{ project_name }}

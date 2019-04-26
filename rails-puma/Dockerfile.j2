@@ -5,7 +5,7 @@ ENV LANG C.UTF-8
 ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
 RUN chmod +x /usr/local/bin/dumb-init
 
-RUN apt-get update -qq && apt-get install -y nodejs mongodb-clients nginx && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+RUN apt-get update -qq && apt-get install -y nodejs mongodb-clients && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN gem install bundler
 
@@ -33,19 +33,8 @@ RUN mkdir /shared/config
 RUN mkdir /shared/pids
 RUN mkdir /shared/sockets
 
-# Configure Nginx
-RUN rm -v /etc/nginx/nginx.conf
-RUN rm -v /etc/nginx/sites-enabled/default
-ADD config/nginx.conf /etc/nginx/
-ADD config/puma.conf /etc/nginx/conf.d/
-
-
-# Symlink nginx logs to stderr / stdout
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
-
 # Precompile Rails assets
 RUN bundle exec rake assets:precompile
 
 ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
-CMD ["./script/run-puma.sh", "config/puma.config"]
+CMD ["bundle", "exec", "puma", "-C", "config/puma.config"]

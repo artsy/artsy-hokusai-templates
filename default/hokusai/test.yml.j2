@@ -2,7 +2,7 @@
 version: '2'
 services:
   {{ project_name }}:
-    command: ["test.sh"]
+    command: ["make", "test"]
     extends:
       file: build.yml
       service: {{ project_name }}

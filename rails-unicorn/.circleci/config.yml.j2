@@ -3,31 +3,6 @@ jobs:
   test:
     docker:
       - image: artsy/hokusai
-    working_directory: ~/{{ project_name }}
-    parallelism: 3
-    steps:
-      - add_ssh_keys
-      - checkout
-      - setup_remote_docker
-      - run: mkdir -p ~/{{ project_name }}/rspec ~/{{ project_name }}/capybara
-      - run:
-          name: Test
-          command: ./script/circle_test_hokusai.sh
-          no_output_timeout: 1h
-      - run:
-          name: Copy rspec artifacts
-          command: docker cp hokusai_{{ project_name }}_1:/app/rspec ~/{{ project_name }}
-          when: always
-      - run:
-          name: Copy capybara artifacts
-          command: docker cp hokusai_{{ project_name }}_1:/app/tmp/capybara ~/{{ project_name }}
-          when: on_fail
-      - store_artifacts:
-          path: ~/{{ project_name }}/capybara
-      - store_artifacts:
-          path: ~/{{ project_name }}/rspec
-      - store_test_results:
-          path: ~/{{ project_name }}/rspec
     steps:
       - add_ssh_keys
       - checkout
@@ -63,12 +38,14 @@ workflows:
     jobs:
       - test
       - push:
+          context: hokusai
           filters:
             branches:
               only: master
           requires:
             - test
       - deploy:
+          context: hokusai
           filters:
             branches:
               only: master

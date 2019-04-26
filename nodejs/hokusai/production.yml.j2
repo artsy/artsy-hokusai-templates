@@ -21,28 +21,64 @@ spec:
     spec:
       containers:
         - name: {{ project_name }}-web
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: TRACE_AGENT_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           envFrom:
             - configMapRef:
                 name: {{ project_name }}-environment
           image: {{ project_repo }}:production
           imagePullPolicy: Always
           ports:
-            - containerPort: 3000
+            - containerPort: 8080
           resources:
             requests:
-              cpu: 500m
-              memory: 768Mi
+              cpu: 100m
+              memory: 256Mi
             limits:
-              memory: 1Gi
+              memory: 500Mi
           readinessProbe:
             httpGet:
-              port: 3000
-              path: /health
+              port: 8080
+              path: /health/ping
               httpHeaders:
-                - name: X-FORWARDED-PROTO
+                - name: X-Forwarded-Proto
                   value: https
+            initialDelaySeconds: 10
+            periodSeconds: 10
+        - name: {{ project_name }}-nginx
+          image: artsy/docker-nginx:1.14.2
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          readinessProbe:
+            tcpSocket:
+              port: 80
             initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: 15
+            timeoutSeconds: 10
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/usr/sbin/nginx", "-s", "quit"]
+          env:
+            - name: 'NGINX_DEFAULT_CONF'
+              valueFrom:
+                configMapKeyRef:
+                  name: nginx-config
+                  key: default
+          volumeMounts:
+            - name: nginx-secrets
+              mountPath: /etc/nginx/ssl
+      volumes:
+        - name: nginx-secrets
+          secret:
+            secretName: nginx-secrets
+            defaultMode: 420
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
@@ -57,7 +93,6 @@ spec:
                   operator: In
                   values:
                     - foreground
-
 ---
 apiVersion: v1
 kind: Service
@@ -74,17 +109,16 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
     service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
     service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "300"
 spec:
   ports:
-    - port: 443
-      protocol: TCP
-      name: https
-      targetPort: 3000
     - port: 80
       protocol: TCP
       name: http
-      targetPort: 3000
+      targetPort: 80
+    - port: 443
+      protocol: TCP
+      name: https
+      targetPort: 443
   selector:
     app: {{ project_name }}
     layer: application

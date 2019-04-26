@@ -1,4 +1,5 @@
-FROM bitnami/ruby:latest
+FROM ruby:latest
+ENV LANG C.UTF-8
 
 ARG BUNDLE_GITHUB__COM
 
@@ -8,7 +9,7 @@ RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN install_packages apt
 RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
 RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN install_packages nodejs yarn nginx
+RUN install_packages nodejs yarn
 
 # throw errors if Gemfile has been modified since Gemfile.lock
 RUN bundle config --global frozen 1
@@ -27,19 +28,10 @@ RUN bundle install -j 10 --quiet
 ADD . /app
 WORKDIR /app
 
-# Configure Nginx
-RUN mkdir -p /shared/sockets
-RUN rm -v /etc/nginx/nginx.conf
-RUN rm -v /etc/nginx/sites-enabled/default
-ADD config/nginx.conf /etc/nginx/
-ADD config/unicorn.conf /etc/nginx/conf.d/
-
-# Symlink nginx logs to stderr / stdout
-RUN ln -sf /dev/stdout /var/log/nginx/access.log \
-	&& ln -sf /dev/stderr /var/log/nginx/error.log
-
 RUN RAILS_ENV=production bundle exec rake assets:precompile
 
 ENV PORT 8080
 EXPOSE 8080
-CMD service nginx start && bundle exec unicorn_rails -c ./config/unicorn.rb --listen /shared/sockets/unicorn.sock
+
+ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+CMD ["bundle", "exec", "unicorn_rails", "-c", "./config/unicorn.rb", "--listen", "/shared/sockets/unicorn.sock"]
