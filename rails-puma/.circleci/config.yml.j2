@@ -39,7 +39,7 @@ workflows:
 
       - hokusai/deploy-staging:
           <<: *only_master
-          project-name: metaphysics
+          project-name: {{ project_name }}
           requires:
             - push-staging-image
 
