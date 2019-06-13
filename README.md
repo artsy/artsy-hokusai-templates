@@ -46,3 +46,6 @@ All templates are rendered with `project_name` and `project_repo` template varia
 
 `hokusai setup` also supports passing in template variables with the `--var` option.  Users will get a warning if trying to render a template with a defined but unspecified variable.
 
+### CircleCI
+
+CircleCI configuration is setup to use the shared [artsy/hokusai](https://github.com/artsy/orbs/tree/master/src/hokusai) orb. Using this requires updating an app's CircleCI settings to use version 2.1. See the [hokusai orb documentation](https://github.com/artsy/orbs/tree/master/src/hokusai) for details.
