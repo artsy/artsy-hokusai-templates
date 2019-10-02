@@ -1,11 +1,8 @@
 FROM ruby:latest
 ENV LANG C.UTF-8
 
-# Set up dumb-init
-ADD https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64 /usr/local/bin/dumb-init
-RUN chmod +x /usr/local/bin/dumb-init
-
-RUN apt-get update -qq && apt-get install -y nodejs && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Set up nodejs and dumb-init
+RUN apt-get update -qq && apt-get install -y nodejs dumb-init && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN gem install bundler
 
@@ -35,5 +32,5 @@ RUN mkdir /shared/sockets
 # Precompile Rails assets
 RUN bundle exec rake assets:precompile
 
-ENTRYPOINT ["/usr/local/bin/dumb-init", "--"]
+ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["bundle", "exec", "puma", "-C", "config/puma.config"]
