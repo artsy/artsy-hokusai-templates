@@ -12,10 +12,10 @@ Application developers can set up a project by specifying which target directory
 
 ### tl;dr
 
-Bootstrap a Rails/Unicorn project:
+Bootstrap a Rails/Puma project:
 
 ```shell
-hokusai setup --template-remote git@github.com:artsy/artsy-hokusai-templates.git --template-dir rails-unicorn
+hokusai setup --template-remote git@github.com:artsy/artsy-hokusai-templates.git --template-dir rails-puma
 ```
 
 ## Template directory structure
