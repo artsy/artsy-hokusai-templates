@@ -1,36 +1,37 @@
-FROM ruby:latest
+FROM ruby:latest-alpine
 ENV LANG C.UTF-8
 
-# Set up nodejs and dumb-init
-RUN apt-get update -qq && apt-get install -y nodejs dumb-init && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Set up working directory
+WORKDIR /app
+
+# Set up container libs and deploy user
+RUN apk update && apk --no-cache --quiet add \
+  dumb-init \
+  nodejs \
+  && adduser -D -g '' deploy
 
 RUN gem install bundler
 
-# throw errors if Gemfile has been modified since Gemfile.lock
+# Throw errors if Gemfile has been modified since Gemfile.lock
 RUN bundle config --global frozen 1
 
-# Set up working directory
-RUN mkdir /app
-
 # Set up gems
-WORKDIR /tmp
-ADD Gemfile Gemfile
-ADD Gemfile.lock Gemfile.lock
+COPY Gemfile Gemfile.lock .ruby-version  ./
 RUN bundle install -j4
 
 # Finally, add the rest of our app's code
 # (this is done at the end so that changes to our app's code
 # don't bust Docker's cache)
-ADD . /app
-WORKDIR /app
+COPY . ./
 
 # Setup Rails shared folders for Puma
-RUN mkdir /shared
-RUN mkdir /shared/pids
-RUN mkdir /shared/sockets
+RUN mkdir -p /shared/pids /shared/sockets && \
+  chown -R deploy:deploy /shared
 
 # Precompile Rails assets
 RUN bundle exec rake assets:precompile
+
+USER deploy
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["bundle", "exec", "puma", "-C", "config/puma.config"]
