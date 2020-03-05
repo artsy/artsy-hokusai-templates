@@ -1,32 +1,30 @@
-FROM node:8.4.0
+FROM node:latest-alpine
 
-# Set up deploy user and working directory
-RUN adduser --disabled-password --gecos '' deploy
-RUN mkdir -p /app
-
-# Set up dumb-init
-RUN apt-get update -qq && apt-get install -y dumb-init
-
-RUN npm install -g yarn@1.0.1
-
-# Set up /app for deploy user
-ADD . /app
 WORKDIR /app
-RUN chown -R deploy:deploy /app
 
-# Switch to deploy user
+# Install system dependencies
+# Add deploy user
+RUN apk --no-cache --quiet add \
+  dumb-init && \
+  adduser -D -g '' deploy
+
+# Copy files required for installation of application dependencies
+COPY package.json yarn.lock ./
+COPY patches ./patches
+
+# Install application dependencies
+RUN yarn install --frozen-lockfile --quiet
+
+# Copy application code
+COPY . ./
+
+# Build application
+# Update file/directory permissions
+RUN yarn build && \
+  chown -R deploy:deploy ./
+
+# Switch to less-privileged user
 USER deploy
-ENV USER deploy
-ENV HOME /home/deploy
-
-# Set up node_modules
-RUN yarn install
-
-# Run babel compiler
-RUN yarn build
-
-ENV PORT 3000
-EXPOSE 3000
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
-CMD ["node", "build/index.js"]
+CMD ["yarn", "start"]
