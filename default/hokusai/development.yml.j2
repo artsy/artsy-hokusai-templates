@@ -2,6 +2,7 @@
 version: '2'
 services:
   {{ project_name }}:
+    env_file: ../.env.development
     extends:
       file: build.yml
       service: {{ project_name }}
