@@ -3,8 +3,7 @@ version: '2'
 services:
   {% filter escape %}{{ project_name }}{% endfilter %}:
     env_file: ../.env.development
-    extends:
-      file: build.yml
-      service: {% filter escape %}{{ project_name }}{% endfilter %}
+    build:
+      context: ../
     ports:
       - 3000:3000
