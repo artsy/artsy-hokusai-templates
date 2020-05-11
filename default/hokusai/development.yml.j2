@@ -1,10 +1,10 @@
 ---
 version: '2'
 services:
-  {{ project_name }}:
+  {% filter escape %}{{ project_name }}{% endfilter %}:
     env_file: ../.env.development
     extends:
       file: build.yml
-      service: {{ project_name }}
+      service: {% filter escape %}{{ project_name }}{% endfilter %}
     ports:
       - 8080:8080

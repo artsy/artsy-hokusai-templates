@@ -2,7 +2,7 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: {{ project_name }}-web
+  name: {% filter escape %}{{ project_name }}{% endfilter %}-web
   namespace: default
 spec:
   strategy:
@@ -13,23 +13,23 @@ spec:
   template:
     metadata:
       labels:
-        app: {{ project_name }}
+        app: {% filter escape %}{{ project_name }}{% endfilter %}
         component: web
         layer: application
-      name: {{ project_name }}-web
+      name: {% filter escape %}{{ project_name }}{% endfilter %}-web
     spec:
       containers:
-        - name: {{ project_name }}-web
+        - name: {% filter escape %}{{ project_name }}{% endfilter %}-web
           env:
             - name: PORT
               value: '8080'
           envFrom:
             - configMapRef:
-                name: {{ project_name }}-environment
-          image: {{ project_repo }}:staging
+                name: {% filter escape %}{{ project_name }}{% endfilter %}-environment
+          image: {% filter escape %}{{ project_repo }}{% endfilter %}:staging
           imagePullPolicy: Always
           ports:
-            - name: {{ project_name }}-http
+            - name: {% filter escape %}{{ project_name }}{% endfilter %}-http
               containerPort: 8080
           resources:
             requests:
@@ -39,7 +39,7 @@ spec:
               memory: 512Mi
           readinessProbe:
             httpGet:
-              port: {{ project_name }}-http
+              port: {% filter escape %}{{ project_name }}{% endfilter %}-http
               path: /health/ping
               httpHeaders:
                 - name: X-Forwarded-Proto
@@ -51,7 +51,7 @@ spec:
             preStop:
               exec:
                 command: ["sh", "-c", "sleep 10"]
-        - name: {{ project_name }}-nginx
+        - name: {% filter escape %}{{ project_name }}{% endfilter %}-nginx
           image: artsy/docker-nginx:1.14.2
           ports:
             - name: nginx-http
@@ -101,13 +101,13 @@ spec:
 apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ project_name }}-web
+  name: {% filter escape %}{{ project_name }}{% endfilter %}-web
   namespace: default
 spec:
   scaleTargetRef:
     apiVersion: extensions/v1beta1
     kind: Deployment
-    name: {{ project_name }}-web
+    name: {% filter escape %}{{ project_name }}{% endfilter %}-web
   minReplicas: 1
   maxReplicas: 3
   targetCPUUtilizationPercentage: 70
@@ -117,10 +117,10 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: {{ project_name }}
+    app: {% filter escape %}{{ project_name }}{% endfilter %}
     component: web
     layer: application
-  name: {{ project_name }}-web
+  name: {% filter escape %}{{ project_name }}{% endfilter %}-web
   namespace: default
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:iam::585031190124:server-certificate/2018-01-17_artsy-net-wildcard"
@@ -140,7 +140,7 @@ spec:
       name: https
       targetPort: nginx-https
   selector:
-    app: {{ project_name }}
+    app: {% filter escape %}{{ project_name }}{% endfilter %}
     layer: application
     component: web
   sessionAffinity: None
