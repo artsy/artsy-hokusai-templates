@@ -1,7 +1,7 @@
 ---
 version: '2'
 services:
-  {% filter escape %}{{ project_name }}{% endfilter %}:
+  {% raw %}{{ project_name }}{% endraw %}:
     command: ["bundle", "exec", "rspec"]
     env_file: ../.env.test
     build:

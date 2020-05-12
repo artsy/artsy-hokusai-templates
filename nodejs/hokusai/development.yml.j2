@@ -1,7 +1,7 @@
 ---
 version: '2'
 services:
-  {% filter escape %}{{ project_name }}{% endfilter %}:
+  {% raw %}{{ project_name }}{% endraw %}:
     env_file: ../.env.development
     build:
       context: ../
