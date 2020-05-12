@@ -1,9 +1,8 @@
 ---
 version: '2'
 services:
-  {{ project_name }}:
+  {% raw %}{{ project_name }}{% endraw %}:
     command: ["bundle", "exec", "rspec"]
-    env_file: .env.test
-    extends:
-      file: build.yml
-      service: {{ project_name }}
+    env_file: ../.env.test
+    build:
+      context: ../
