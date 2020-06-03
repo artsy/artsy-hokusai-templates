@@ -21,6 +21,14 @@ spec:
       containers:
         - name: {% raw %}{{ project_name }}{% endraw %}-web
           env:
+            - name: PORT
+              value: "8080"
+            - name: PUMA_WORKERS
+              value: "1"
+            - name: PUMA_THREAD_MIN
+              value: "5"
+            - name: PUMA_THREAD_MAX
+              value: "5"
             - name: RAILS_SERVE_STATIC_FILES
               value: 'true'
             - name: RAILS_LOG_TO_STDOUT
