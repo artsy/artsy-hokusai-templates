@@ -35,6 +35,8 @@ spec:
               value: 'true'
             - name: PUMA_BIND
               value: 'tcp://0.0.0.0:8080'
+            - name: MALLOC_ARENA_MAX
+              value: "2"
             - name: TRACE_AGENT_HOSTNAME
               valueFrom:
                 fieldRef:
