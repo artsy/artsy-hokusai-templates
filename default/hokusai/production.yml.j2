@@ -1,5 +1,5 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {% raw %}{{ project_name }}{% endraw %}-web
@@ -10,6 +10,11 @@ spec:
       maxSurge: 1
       maxUnavailable: 0
     type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {% raw %}{{ project_name }}{% endraw %}
+      component: web
+      layer: application
   template:
     metadata:
       labels:
@@ -105,7 +110,7 @@ metadata:
   namespace: default
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     name: {% raw %}{{ project_name }}{% endraw %}-web
   minReplicas: 2
