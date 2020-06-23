@@ -56,37 +56,6 @@ spec:
             preStop:
               exec:
                 command: ["sh", "-c", "sleep 10"]
-        - name: {% raw %}{{ project_name }}{% endraw %}-nginx
-          image: artsy/docker-nginx:1.14.2
-          ports:
-            - name: nginx-http
-              containerPort: 80
-            - name: nginx-https
-              containerPort: 443
-          readinessProbe:
-            tcpSocket:
-              port: nginx-http
-            initialDelaySeconds: 5
-            periodSeconds: 15
-            timeoutSeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 5 && /usr/sbin/nginx -s quit"]
-          env:
-            - name: 'NGINX_DEFAULT_CONF'
-              valueFrom:
-                configMapKeyRef:
-                  name: nginx-config
-                  key: default
-          volumeMounts:
-            - name: nginx-secrets
-              mountPath: /etc/nginx/ssl
-      volumes:
-        - name: nginx-secrets
-          secret:
-            secretName: nginx-secrets
-            defaultMode: 420
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
@@ -125,28 +94,31 @@ metadata:
     app: {% raw %}{{ project_name }}{% endraw %}
     component: web
     layer: application
-  name: {% raw %}{{ project_name }}{% endraw %}-web
+  name: {% raw %}{{ project_name }}{% endraw %}-web-internal
   namespace: default
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {% raw %}{{ artsyNetWildcardSSLCert }}{% endraw %}
-    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "443"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "5"
 spec:
   ports:
-    - port: 80
+    - port: 8080
       protocol: TCP
-      name: http
-      targetPort: nginx-http
-    - port: 443
-      protocol: TCP
-      name: https
-      targetPort: nginx-https
+      name: {% raw %}{{ project_name }}{% endraw %}-http
+      targetPort: {% raw %}{{ project_name }}{% endraw %}-http
   selector:
     app: {% raw %}{{ project_name }}{% endraw %}
     layer: application
     component: web
-  sessionAffinity: None
-  type: LoadBalancer
+  type: ClusterIP
+
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {% raw %}{{ project_name }}{% endraw %}
+spec:
+  rules:
+    - host: {{ project_name }}.artsy.net
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {% raw %}{{ project_name }}{% endraw %}-web
+              servicePort: {% raw %}{{ project_name }}{% endraw %}-http
