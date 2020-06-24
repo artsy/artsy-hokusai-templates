@@ -1,9 +1,13 @@
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {% raw %}{{ project_name }}{% endraw %}-web
   namespace: default
+  labels:
+    app: {% raw %}{{ project_name }}{% endraw %}
+    component: web
+    layer: application
 spec:
   strategy:
     rollingUpdate:
@@ -116,7 +120,7 @@ metadata:
   namespace: default
 spec:
   scaleTargetRef:
-    apiVersion: extensions/v1beta1
+    apiVersion: apps/v1
     kind: Deployment
     name: {% raw %}{{ project_name }}{% endraw %}-web
   minReplicas: 2
