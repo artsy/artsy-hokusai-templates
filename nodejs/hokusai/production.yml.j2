@@ -38,6 +38,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: NODE_OPTIONS
+              value: "--max_old_space_size=256"
           envFrom:
             - configMapRef:
                 name: {% raw %}{{ project_name }}{% endraw %}-environment
@@ -48,7 +50,7 @@ spec:
               containerPort: 8080
           resources:
             requests:
-              cpu: 300m
+              cpu: 200m
               memory: 256Mi
             limits:
               memory: 1Gi
