@@ -15,7 +15,7 @@ Application developers can set up a project by specifying which target directory
 Bootstrap a Rails/Puma project:
 
 ```shell
-hokusai setup --template-remote git@github.com:artsy/artsy-hokusai-templates.git --template-dir rails-puma
+hokusai setup --template-remote git@github.com:artsy/artsy-hokusai-templates.git --template-dir rails-puma [--var horizon_project_id=99]
 ```
 
 ## Template directory structure
