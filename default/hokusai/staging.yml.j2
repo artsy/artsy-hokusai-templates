@@ -118,7 +118,7 @@ kind: Ingress
 metadata:
   name: {% raw %}{{ project_name }}{% endraw %}
   annotations:
-    nginx.ingress.kubernetes.io/whitelist-source-range: "{{ cloudflareIpSourceRanges|join(',') }}"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "{% raw %}{{ cloudflareIpSourceRanges|join(',') }}{% endraw %}"
 spec:
   rules:
     - host: {% raw %}{{ project_name }}{% endraw %}-staging.artsy.net
