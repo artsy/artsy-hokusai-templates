@@ -121,18 +121,20 @@ spec:
   type: ClusterIP
 
 ---
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: {% raw %}{{ project_name }}{% endraw %}
   annotations:
     nginx.ingress.kubernetes.io/whitelist-source-range: "{% raw %}{{ cloudflareIpSourceRanges|join(',') }}{% endraw %}"
 spec:
+  ingressClassName: nginx
   rules:
     - host: {% raw %}{{ project_name }}{% endraw %}-staging.artsy.net
       http:
         paths:
           - path: /
+            pathType: Prefix
             backend:
               serviceName: {% raw %}{{ project_name }}{% endraw %}-web-internal
               servicePort: http
