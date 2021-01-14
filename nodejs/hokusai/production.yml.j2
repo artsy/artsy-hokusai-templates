@@ -126,7 +126,7 @@ kind: Ingress
 metadata:
   name: {% raw %}{{ project_name }}{% endraw %}
   annotations:
-    nginx.ingress.kubernetes.io/whitelist-source-range: "{% raw %}{{ cloudflareIpSourceRanges|join(',') }}{% endraw %}"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "{% raw %}{{ externalIngressAllowSourceIP|join(',') }}{% endraw %}"
 spec:
   ingressClassName: nginx
   rules:
