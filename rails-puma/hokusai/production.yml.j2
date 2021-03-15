@@ -157,6 +157,9 @@ spec:
     spec:
       backoffLimit: 0 # no retry if job fails.
       template:
+        metadata:
+          annotations:
+            "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
         spec:
           containers:
             - name: {% raw %}{{ project_name }}{% endraw %}-cron-example
