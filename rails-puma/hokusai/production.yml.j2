@@ -155,7 +155,7 @@ spec:
   concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      backoffLimit: 0 # no retry if job fails.
+      backoffLimit: 0 # do not retry if pod fails.
       template:
         metadata:
           annotations:
