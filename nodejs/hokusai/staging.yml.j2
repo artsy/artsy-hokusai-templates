@@ -50,7 +50,7 @@ spec:
               containerPort: 8080
           resources:
             requests:
-              cpu: 100m
+              cpu: 50m
               memory: 256Mi
             limits:
               memory: 512Mi
@@ -64,10 +64,6 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
             timeoutSeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 10"]
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
@@ -95,7 +91,7 @@ spec:
     kind: Deployment
     name: {% raw %}{{ project_name }}{% endraw %}-web
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 2
   targetCPUUtilizationPercentage: 70
 
 ---
@@ -138,3 +134,38 @@ spec:
             backend:
               serviceName: {% raw %}{{ project_name }}{% endraw %}-web-internal
               servicePort: http
+
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {% raw %}{{ project_name }}{% endraw %}-cron-example
+spec:
+  schedule: "11 11 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0 # do not retry if pod fails.
+      template:
+        metadata:
+          annotations:
+            "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+        spec:
+          containers:
+            - name: {% raw %}{{ project_name }}{% endraw %}-cron-example
+              image: {% raw %}{{ project_repo }}{% endraw %}:staging
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: {% raw %}{{ project_name }}{% endraw %}-environment
+              args: ["echo", "i am just an example"]
+          restartPolicy: Never
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                  - matchExpressions:
+                      - key: tier
+                        operator: In
+                        values:
+                          - background
