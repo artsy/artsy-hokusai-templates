@@ -101,7 +101,7 @@ spec:
     - port: 8080
       protocol: TCP
       name: http
-      targetPort: 8080
+      targetPort: {% raw %}{{ project_name }}{% endraw %}-http
   selector:
     app: {% raw %}{{ project_name }}{% endraw %}
     layer: application
