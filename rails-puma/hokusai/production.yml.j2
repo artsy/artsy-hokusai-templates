@@ -109,6 +109,96 @@ spec:
   targetCPUUtilizationPercentage: 70
 
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {% raw %}{{ project_name }}{% endraw %}-sidekiq
+  namespace: default
+  labels:
+    app: {% raw %}{{ project_name }}{% endraw %}
+    component: sidekiq
+    layer: application
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {% raw %}{{ project_name }}{% endraw %}
+      component: sidekiq
+      layer: application
+  template:
+    metadata:
+      labels:
+        app: {% raw %}{{ project_name }}{% endraw %}
+        component: sidekiq
+        layer: application
+      name: {% raw %}{{ project_name }}{% endraw %}-sidekiq
+    spec:
+      containers:
+        - name: {% raw %}{{ project_name }}{% endraw %}-sidekiq
+          env:
+            - name: RAILS_LOG_TO_STDOUT
+              value: 'true'
+            - name: MALLOC_ARENA_MAX
+              value: "2"
+            - name: DATADOG_TRACE_AGENT_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          envFrom:
+            - configMapRef:
+                name: {% raw %}{{ project_name }}{% endraw %}-environment
+          image: {% raw %}{{ project_repo }}{% endraw %}:production
+          imagePullPolicy: Always
+          args: ["bundle", "exec", "sidekiq"]
+          livenessProbe:
+            exec:
+              command:
+                - pgrep
+                - -f
+                - sidekiq
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "1"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: tier
+                  operator: In
+                  values:
+                    - background
+
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {% raw %}{{ project_name }}{% endraw %}-sidekiq
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {% raw %}{{ project_name }}{% endraw %}-sidekiq
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+
+---
 apiVersion: v1
 kind: Service
 metadata:
