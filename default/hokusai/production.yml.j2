@@ -38,6 +38,7 @@ spec:
           image: {% raw %}{{ project_repo }}{% endraw %}:production
           imagePullPolicy: Always
           ports:
+            # k8s limits a port name to 15 characters
             - name: {% raw %}{{ project_name }}{% endraw %}-http
               containerPort: 8080
           resources:
