@@ -1,4 +1,4 @@
-FROM node:latest-alpine
+FROM node:current-alpine
 
 WORKDIR /app
 
@@ -10,7 +10,9 @@ RUN apk --no-cache --quiet add \
 
 # Copy files required for installation of application dependencies
 COPY package.json yarn.lock ./
-COPY patches ./patches
+
+# If you use https://github.com/ds300/patch-package uncomment the following line
+# COPY patches ./patches
 
 # Install application dependencies
 RUN yarn install --frozen-lockfile && yarn cache clean
