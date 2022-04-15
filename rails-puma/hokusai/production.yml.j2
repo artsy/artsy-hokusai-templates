@@ -8,6 +8,7 @@ metadata:
     app: {% raw %}{{ project_name }}{% endraw %}
     component: web
     layer: application
+    app.kubernetes.io/version: production
 spec:
   strategy:
     rollingUpdate:
@@ -25,6 +26,7 @@ spec:
         app: {% raw %}{{ project_name }}{% endraw %}
         component: web
         layer: application
+        app.kubernetes.io/version: production
       name: {% raw %}{{ project_name }}{% endraw %}-web
     spec:
       containers:
@@ -50,6 +52,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: DD_VERSION
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.labels['app.kubernetes.io/version']
           envFrom:
             - configMapRef:
                 name: {% raw %}{{ project_name }}{% endraw %}-environment
