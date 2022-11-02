@@ -175,8 +175,8 @@ spec:
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
                 nodeSelectorTerms:
-                  - matchExpressions:
-                      - key: tier
-                        operator: In
-                        values:
-                          - background
+                - matchExpressions:
+                  - key: tier
+                    operator: In
+                    values:
+                    - background
