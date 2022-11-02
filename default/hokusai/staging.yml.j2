@@ -67,10 +67,10 @@ spec:
           - name: ndots
             value: "1"
       tolerations: # if ok to run on Spot instances
-        - key: reserved
-          operator: Equal
-          value: spot
-          effect: NoSchedule
+      - key: reserved
+        operator: Equal
+        value: spot
+        effect: NoSchedule
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
