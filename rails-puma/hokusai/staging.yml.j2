@@ -90,15 +90,29 @@ spec:
         options:
           - name: ndots
             value: "1"
+      tolerations: # if ok to run on Spot instances
+      - key: reserved
+        operator: Equal
+        value: spot
+        effect: NoSchedule
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-              - matchExpressions:
-                - key: tier
-                  operator: In
-                  values:
-                    - foreground
+            - matchExpressions:
+              - key: tier
+                operator: In
+                values:
+                - foreground
+                - foreground-spot # if ok to run on Spot instances
+          preferredDuringSchedulingIgnoredDuringExecution: # if ok to run on Spot instances
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: tier
+                operator: In
+                values:
+                - foreground-spot
 
 ---
 apiVersion: autoscaling/v1
@@ -180,15 +194,29 @@ spec:
         options:
           - name: ndots
             value: "1"
+      tolerations: # if ok to run on Spot instances
+      - key: reserved
+        operator: Equal
+        value: spot
+        effect: NoSchedule
       affinity:
         nodeAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
-              - matchExpressions:
-                - key: tier
-                  operator: In
-                  values:
-                    - background
+            - matchExpressions:
+              - key: tier
+                operator: In
+                values:
+                - background
+                - background-spot # if ok to run on Spot instances
+          preferredDuringSchedulingIgnoredDuringExecution: # if ok to run on Spot instances
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: tier
+                operator: In
+                values:
+                - background-spot
 
 ---
 apiVersion: autoscaling/v1
