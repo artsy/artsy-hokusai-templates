@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: project-name-web
+  name: web
   namespace: default
   labels:
     app: project-name
@@ -26,10 +26,10 @@ spec:
         component: web
         layer: application
         app.kubernetes.io/version: foo
-      name: project-name-web
+      name: web
     spec:
       containers:
-      - name: project-name-web
+      - name: web
         envFrom:
         - configMapRef:
             name: project-name-environment
@@ -81,13 +81,13 @@ spec:
 apiVersion: autoscaling/v2beta2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: project-name-web
+  name: web
   namespace: default
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: project-name-web
+    name: web
   minReplicas: 1
   maxReplicas: 2
   behavior:
@@ -108,7 +108,7 @@ metadata:
     app: project-name
     component: web
     layer: application
-  name: project-name-web-internal
+  name: web-internal
   namespace: default
 spec:
   ports:
