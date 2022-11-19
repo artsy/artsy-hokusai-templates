@@ -130,3 +130,12 @@ metadata:
     nginx.ingress.kubernetes.io/whitelist-source-range: 1.1.1.1
 spec:
   ingressClassName: nginx
+  rules:
+  - host: project-name-staging.artsy.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          serviceName: project-name-web-internal
+          servicePort: http
