@@ -4,50 +4,32 @@ metadata:
   name: web
   namespace: default
   labels:
-    app: project-name
+    app: artsyapp
     component: web
     layer: application
-    app.kubernetes.io/version: foo
+    app.kubernetes.io/version: versionx
 spec:
-  selector:
-    matchLabels:
-      app: project-name
-      component: web
-      layer: application
   strategy:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0
     type: RollingUpdate
+  selector:
+    matchLabels:
+      app: artsyapp
+      component: web
+      layer: application
   template:
     metadata:
       labels:
-        app: project-name
+        app: artsyapp
         component: web
         layer: application
-        app.kubernetes.io/version: foo
+        app.kubernetes.io/version: versionx
       name: web
     spec:
       containers:
       - name: web
-        envFrom:
-        - configMapRef:
-            name: project-name-environment
-        image: project-name-ecr-repo:foo
-        imagePullPolicy: Always
-        ports:
-        - name: project-name-http
-          containerPort: 8080
-        readinessProbe:
-          httpGet:
-            port: project-name-http
-            path: /ping
-            httpHeaders:
-              - name: X-Forwarded-Proto
-                value: https
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
         env:
         - name: DATADOG_AGENT_HOSTNAME
           valueFrom:
@@ -57,6 +39,34 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.labels['app.kubernetes.io/version']
+        envFrom:
+        - configMapRef:
+            name: artsyapp-environment
+        image: artsyapp-ecr-repo:versionx
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+        readinessProbe:
+          httpGet:
+            port: http
+            path: /ping
+            httpHeaders:
+              - name: X-Forwarded-Proto
+                value: https
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 5"]
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
@@ -78,7 +88,7 @@ spec:
                 - foreground
                 - foreground-spot
 ---
-apiVersion: autoscaling/v2beta2
+apiVersion: autoscaling/v1
 kind: HorizontalPodAutoscaler
 metadata:
   name: web
@@ -90,22 +100,13 @@ spec:
     name: web
   minReplicas: 1
   maxReplicas: 2
-  behavior:
-    scaleDown:
-      stabilizationWindowSeconds: 1800
-  metrics:
-  - resource:
-      name: cpu
-      target:
-        averageUtilization: 70
-        type: Utilization
-    type: Resource
+  targetCPUUtilizationPercentage: 70
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: project-name
+    app: artsyapp
     component: web
     layer: application
   name: web-internal
@@ -115,9 +116,9 @@ spec:
   - port: 8080
     protocol: TCP
     name: http
-    targetPort: project-name-http
+    targetPort: http
   selector:
-    app: project-name
+    app: artsyapp
     layer: application
     component: web
   type: ClusterIP
@@ -125,17 +126,17 @@ spec:
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: ingress
+  name: artsyapp
   annotations:
     nginx.ingress.kubernetes.io/whitelist-source-range: 1.1.1.1
 spec:
   ingressClassName: nginx
   rules:
-  - host: project-name-staging.artsy.net
+  - host: artsyapp.artsy.net
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
-          serviceName: project-name-web-internal
+          serviceName: artsyapp-web-internal
           servicePort: http
