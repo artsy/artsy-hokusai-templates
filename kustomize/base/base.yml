@@ -47,12 +47,12 @@ spec:
         ports:
         - name: http
           containerPort: 8080
-          resources:
-            requests:
-              cpu: 50m
-              memory: 256Mi
-            limits:
-              memory: 512Mi
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
         readinessProbe:
           httpGet:
             port: http
