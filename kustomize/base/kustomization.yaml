@@ -1,2 +1,3 @@
 resources:
 - base.yml
+- cron.yml
