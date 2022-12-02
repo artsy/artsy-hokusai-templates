@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: default
+  labels:
+    app: artsyapp
+    component: web
+    layer: application
+    app.kubernetes.io/version: versionx
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: artsyapp
+      component: web
+      layer: application
+  template:
+    metadata:
+      labels:
+        app: artsyapp
+        component: web
+        layer: application
+        app.kubernetes.io/version: versionx
+      name: web
+    spec:
+      containers:
+      - name: web
+        env:
+        - name: DATADOG_AGENT_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app.kubernetes.io/version']
+        envFrom:
+        - configMapRef:
+            name: artsyapp-environment
+        image: artsyapp-ecr-repo:versionx
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+        readinessProbe:
+          httpGet:
+            port: http
+            path: /ping
+            httpHeaders:
+              - name: X-Forwarded-Proto
+                value: https
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 5"]
+      dnsPolicy: ClusterFirst
+      dnsConfig:
+        options:
+        - name: ndots
+          value: '1'
+      tolerations:
+        - key: reserved
+          operator: Equal
+          value: spot
+          effect: NoSchedule
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: tier
+                operator: In
+                values:
+                - foreground
+                - foreground-spot
