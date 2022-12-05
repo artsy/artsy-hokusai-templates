@@ -26,10 +26,10 @@ spec:
         component: web
         layer: application
         app.kubernetes.io/version: versionx
-      name: web
+      name: {{ project_name }}-web
     spec:
       containers:
-      - name: web
+      - name: {{ project_name }}-web
         env:
         - name: DATADOG_AGENT_HOSTNAME
           valueFrom:
