@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
+  name: {{ project_name }}-web
   namespace: default
   labels:
-    app: artsyapp
+    app: {{ project_name }}
     component: web
     layer: application
     app.kubernetes.io/version: versionx
@@ -16,13 +16,13 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      app: artsyapp
+      app: {{ project_name }}
       component: web
       layer: application
   template:
     metadata:
       labels:
-        app: artsyapp
+        app: {{ project_name }}
         component: web
         layer: application
         app.kubernetes.io/version: versionx
@@ -41,8 +41,8 @@ spec:
               fieldPath: metadata.labels['app.kubernetes.io/version']
         envFrom:
         - configMapRef:
-            name: artsyapp-environment
-        image: artsyapp-ecr-repo:versionx
+            name: {{ project_name }}-environment
+        image: {{ project_repo }}:versionx
         imagePullPolicy: Always
         ports:
         - name: http
