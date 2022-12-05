@@ -3,10 +3,10 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: artsyapp
+    app: {{ project_name }}
     component: web
     layer: application
-  name: web-internal
+  name: {{ project_name }}-web-internal
   namespace: default
 spec:
   ports:
@@ -15,7 +15,7 @@ spec:
     name: http
     targetPort: http
   selector:
-    app: artsyapp
+    app: {{ project_name }}
     layer: application
     component: web
   type: ClusterIP

@@ -2,17 +2,17 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: artsyapp
+  name: {{ project_name }}
   annotations:
-    nginx.ingress.kubernetes.io/whitelist-source-range: 1.1.1.1
+    nginx.ingress.kubernetes.io/whitelist-source-range: {{ externalIngressAllowSourceIP|join(',') }}
 spec:
   ingressClassName: nginx
   rules:
-  - host: artsyapp.artsy.net
+  - host: {{ project_name }}.artsy.net
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
-          serviceName: artsyapp-web-internal
+          serviceName: {{ project_name }}-web-internal
           servicePort: http
