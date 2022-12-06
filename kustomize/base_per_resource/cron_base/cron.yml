@@ -1,0 +1,34 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ project_name }}-cron
+spec:
+  schedule: "11 11 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0 # do not retry if pod fails.
+      template:
+        metadata:
+          annotations:
+            "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
+        spec:
+          containers:
+            - name: {{ project_name }}-cron
+              image: {{ project_repo }}:{{ environment }}
+              imagePullPolicy: Always
+              envFrom:
+                - configMapRef:
+                    name: {{ project_name }}-environment
+              args: ["echo", "replace me"]
+          restartPolicy: Never
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: tier
+                    operator: In
+                    values:
+                    - background
