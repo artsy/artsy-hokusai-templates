@@ -7,7 +7,7 @@ metadata:
     app: {{ project_name }}
     component: web
     layer: application
-    app.kubernetes.io/version: versionx
+    app.kubernetes.io/version: {{ environment }}
 spec:
   strategy:
     rollingUpdate:
@@ -25,7 +25,7 @@ spec:
         app: {{ project_name }}
         component: web
         layer: application
-        app.kubernetes.io/version: versionx
+        app.kubernetes.io/version: {{ environment }}
       name: {{ project_name }}-web
     spec:
       containers:
@@ -42,7 +42,7 @@ spec:
         envFrom:
         - configMapRef:
             name: {{ project_name }}-environment
-        image: {{ project_repo }}:versionx
+        image: {{ project_repo }}:{{ environment }}
         imagePullPolicy: Always
         ports:
         - name: http
