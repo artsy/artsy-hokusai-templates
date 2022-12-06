@@ -21,7 +21,6 @@ spec:
               envFrom:
                 - configMapRef:
                     name: {{ project_name }}-environment
-              args: ["echo", "replace me"]
           restartPolicy: Never
           affinity:
             nodeAffinity:
