@@ -1,0 +1,2 @@
+resources:
+- sidekiq_deployment.yml
