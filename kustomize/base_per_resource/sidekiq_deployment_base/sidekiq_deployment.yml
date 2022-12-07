@@ -28,41 +28,41 @@ spec:
       name: {{ project_name }}-sidekiq
     spec:
       containers:
-        - name: {{ project_name }}-sidekiq
-          env:
-            - name: RAILS_LOG_TO_STDOUT
-              value: 'true'
-            - name: MALLOC_ARENA_MAX
-              value: "2"
-            - name: DATADOG_TRACE_AGENT_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-          envFrom:
-            - configMapRef:
-                name: {{ project_name }}-environment
-          image: {{ project_repo }}:{{ environment }}
-          imagePullPolicy: Always
-          args: ["bundle", "exec", "sidekiq"]
-          livenessProbe:
-            exec:
-              command:
-                - pgrep
-                - -f
-                - sidekiq
-            initialDelaySeconds: 30
-            periodSeconds: 30
-          resources:
-            requests:
-              cpu: 50m
-              memory: 256Mi
-            limits:
-              memory: 512Mi
+      - name: {{ project_name }}-sidekiq
+        env:
+        - name: RAILS_LOG_TO_STDOUT
+          value: 'true'
+        - name: MALLOC_ARENA_MAX
+          value: "2"
+        - name: DATADOG_TRACE_AGENT_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        envFrom:
+        - configMapRef:
+            name: {{ project_name }}-environment
+        image: {{ project_repo }}:{{ environment }}
+        imagePullPolicy: Always
+        args: ["bundle", "exec", "sidekiq"]
+        livenessProbe:
+          exec:
+            command:
+            - pgrep
+            - -f
+            - sidekiq
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
-          - name: ndots
-            value: "1"
+        - name: ndots
+          value: "1"
       tolerations: # if ok to run on Spot instances
       - key: reserved
         operator: Equal

@@ -30,66 +30,66 @@ spec:
       name: {{ project_name }}-web
     spec:
       containers:
-        - name: {{ project_name }}-web
-          env:
-            - name: PORT
-              value: "8080"
-            - name: PUMA_WORKERS
-              value: "1"
-            - name: PUMA_THREAD_MIN
-              value: "5"
-            - name: PUMA_THREAD_MAX
-              value: "5"
-            - name: RAILS_SERVE_STATIC_FILES
-              value: 'true'
-            - name: RAILS_LOG_TO_STDOUT
-              value: 'true'
-            - name: PUMA_BIND
-              value: 'tcp://0.0.0.0:8080'
-            - name: MALLOC_ARENA_MAX
-              value: "2"
-            - name: DATADOG_TRACE_AGENT_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-            - name: DD_VERSION
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['app.kubernetes.io/version']
-          envFrom:
-            - configMapRef:
-                name: {{ project_name }}-environment
-          image: {{ project_repo }}:{{ environment }}
-          imagePullPolicy: Always
-          ports:
-            # k8s limits a port name to 15 characters
-            - name: {{ project_name }}-http
-              containerPort: 8080
-          resources:
-            requests:
-              cpu: 50m
-              memory: 256Mi
-            limits:
-              memory: 512Mi
-          readinessProbe:
-            httpGet:
-              port: {{ project_name }}-http
-              path: /health/ping
-              httpHeaders:
-                - name: X-Forwarded-Proto
-                  value: https
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 5"]
+      - name: {{ project_name }}-web
+        env:
+        - name: PORT
+          value: "8080"
+        - name: PUMA_WORKERS
+          value: "1"
+        - name: PUMA_THREAD_MIN
+          value: "5"
+        - name: PUMA_THREAD_MAX
+          value: "5"
+        - name: RAILS_SERVE_STATIC_FILES
+          value: 'true'
+        - name: RAILS_LOG_TO_STDOUT
+          value: 'true'
+        - name: PUMA_BIND
+          value: 'tcp://0.0.0.0:8080'
+        - name: MALLOC_ARENA_MAX
+          value: "2"
+        - name: DATADOG_TRACE_AGENT_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app.kubernetes.io/version']
+        envFrom:
+        - configMapRef:
+            name: {{ project_name }}-environment
+        image: {{ project_repo }}:{{ environment }}
+        imagePullPolicy: Always
+        ports:
+        # k8s limits a port name to 15 characters
+        - name: {{ project_name }}-http
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 512Mi
+        readinessProbe:
+          httpGet:
+            port: {{ project_name }}-http
+            path: /health/ping
+            httpHeaders:
+            - name: X-Forwarded-Proto
+              value: https
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 5"]
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
-          - name: ndots
-            value: "1"
+        - name: ndots
+          value: "1"
       tolerations: # if ok to run on Spot instances
       - key: reserved
         operator: Equal

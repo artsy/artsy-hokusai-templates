@@ -18,8 +18,8 @@ spec:
           - image: {{ project_repo }}:{{ environment }}
             imagePullPolicy: Always
             envFrom:
-              - configMapRef:
-                  name: {{ project_name }}-environment
+            - configMapRef:
+                name: {{ project_name }}-environment
           restartPolicy: Never
           affinity:
             nodeAffinity:
