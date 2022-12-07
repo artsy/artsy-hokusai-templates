@@ -15,7 +15,8 @@ spec:
             "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
         spec:
           containers:
-          - image: {{ project_repo }}:{{ environment }}
+          - name: {{ project_name }}-cron
+            image: {{ project_repo }}:{{ environment }}
             imagePullPolicy: Always
             envFrom:
             - configMapRef:
