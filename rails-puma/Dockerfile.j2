@@ -26,8 +26,8 @@ ENV HOME /home/deploy
 RUN bundle config --global frozen 1
 
 # Set up gems
-ADD Gemfile Gemfile
-ADD Gemfile.lock Gemfile.lock
+COPY Gemfile Gemfile
+COPY Gemfile.lock Gemfile.lock
 RUN gem install bundler \
   && bundle install --frozen --jobs $(nproc) \
   && rm -rf /usr/local/bundle/cache \
@@ -36,7 +36,7 @@ RUN gem install bundler \
 # Finally, add the rest of our app's code
 # (this is done at the end so that changes to our app's code
 # don't bust Docker's cache)
-ADD --chown=deploy:deploy . /app
+COPY --chown=deploy:deploy . /app
 
 WORKDIR /app
 
