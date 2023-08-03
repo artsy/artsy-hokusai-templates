@@ -1,7 +1,7 @@
 FROM node:current-alpine
 
 # Add deploy user
-adduser -D -g '' deploy
+RUN adduser -D -g '' deploy
 
 # Set up working directory
 RUN mkdir /app
