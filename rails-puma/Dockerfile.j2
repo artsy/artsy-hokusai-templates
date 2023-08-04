@@ -1,37 +1,50 @@
 FROM ruby:latest-alpine
 ENV LANG C.UTF-8
 
+# Set up deploy user
+RUN adduser --disabled-password --gecos '' deploy
+
 # Set up working directory
-WORKDIR /app
+RUN mkdir /app
+RUN chown deploy:deploy /app
 
-# Set up container libs and deploy user
-RUN apk update && apk --no-cache --quiet add \
-  dumb-init \
-  nodejs \
-  && adduser -D -g '' deploy
+# Set up shared directory for Puma
+RUN mkdir /shared
+RUN chown deploy:deploy /shared
 
-RUN gem install bundler
+# Set up OS libs
+RUN apk update && apk --no-cache --quiet add --update \
+  build-base \
+  dumb-init
 
-# Throw errors if Gemfile has been modified since Gemfile.lock
+USER deploy
+ENV USER deploy
+ENV HOME /home/deploy
+
+# throw errors if Gemfile has been modified since Gemfile.lock
 RUN bundle config --global frozen 1
 
 # Set up gems
-COPY Gemfile Gemfile.lock .ruby-version  ./
-RUN bundle install -j4
+COPY Gemfile Gemfile
+COPY Gemfile.lock Gemfile.lock
+RUN gem install bundler \
+  && bundle install --frozen --jobs $(nproc) \
+  && rm -rf /usr/local/bundle/cache \
+  && rm -rf /home/deploy/.bundle/cache
 
 # Finally, add the rest of our app's code
 # (this is done at the end so that changes to our app's code
 # don't bust Docker's cache)
-COPY . ./
+COPY --chown=deploy:deploy . /app
+
+WORKDIR /app
 
 # Setup Rails shared folders for Puma
-RUN mkdir -p /shared/pids /shared/sockets && \
-  chown -R deploy:deploy /shared
+RUN mkdir /shared/config /shared/pids /shared/sockets
 
 # Precompile Rails assets
-RUN bundle exec rake assets:precompile
-
-USER deploy
+RUN RAILS_ENV=production bundle exec rake assets:precompile \
+  && rm -rf tmp/cache
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 CMD ["bundle", "exec", "puma", "-C", "config/puma.config"]

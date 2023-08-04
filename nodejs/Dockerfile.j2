@@ -1,29 +1,32 @@
 FROM node:current-alpine
 
+# Add deploy user
+RUN adduser -D -g '' deploy
+
+# Set up working directory
+RUN mkdir /app
+RUN chown deploy:deploy /app
+
 WORKDIR /app
 
 # Install system dependencies
-# Add deploy user
-RUN apk --no-cache --quiet add \
-  dumb-init && \
-  adduser -D -g '' deploy
-
-# Copy files required for installation of application dependencies
-COPY package.json yarn.lock ./
-
-# If you use https://github.com/ds300/patch-package uncomment the following line
-# COPY patches ./patches
+RUN apk update && apk --no-cache --quiet add --update \
+  build-base \
+  dumb-init
 
 # Install application dependencies
-RUN yarn install --frozen-lockfile && yarn cache clean
+COPY package.json yarn.lock ./
+COPY patches ./patches
+RUN yarn install --frozen-lockfile --quiet \
+  && yarn cache clean
 
 # Copy application code
-COPY . ./
+COPY --chown=deploy:deploy . /app
 
 # Build application
 # Update file/directory permissions
-RUN yarn build && \
-  chown -R deploy:deploy ./
+RUN yarn build \
+  && chown -R deploy:deploy ./
 
 # Switch to less-privileged user
 USER deploy
