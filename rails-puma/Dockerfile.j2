@@ -15,8 +15,7 @@ RUN chown deploy:deploy /shared
 # Set up OS libs
 RUN apk update && apk --no-cache --quiet add --update \
   build-base \
-  dumb-init \
-  nodejs
+  dumb-init
 
 USER deploy
 ENV USER deploy
