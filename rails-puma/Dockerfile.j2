@@ -13,7 +13,7 @@ RUN mkdir /shared
 RUN chown deploy:deploy /shared
 
 # Set up OS libs
-RUN apk update && apk --no-cache --quiet add --update \
+RUN apk update && apk add --no-cache --quiet \
   build-base \
   dumb-init
 
