@@ -29,6 +29,22 @@ spec:
         app.kubernetes.io/version: staging
       name: {% raw %}{{ project_name }}{% endraw %}-web
     spec:
+      initContainers:
+      - name: setenv
+        image: 585031190124.dkr.ecr.us-east-1.amazonaws.com/fortress:staging
+        imagePullPolicy: Always
+        command:
+        - python
+        - src/load/load.py
+        - kubernetes
+        - staging
+        - {{ project_name }}
+        envFrom:
+        - configMapRef:
+            name: secrets-config
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
       containers:
       - name: {% raw %}{{ project_name }}{% endraw %}-web
         env:
@@ -48,7 +64,13 @@ spec:
           value: "--max_old_space_size=256"
         envFrom:
         - configMapRef:
+            name: secrets-config
+        - configMapRef:
             name: {% raw %}{{ project_name }}{% endraw %}-environment
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+          readOnly: true
         image: {% raw %}{{ project_repo }}{% endraw %}:staging
         imagePullPolicy: Always
         ports:
@@ -80,6 +102,7 @@ spec:
         options:
         - name: ndots
           value: "1"
+      serviceAccountName: {{ project_name }}
       tolerations: # if ok to run on Spot instances
       - key: reserved
         operator: Equal
@@ -103,6 +126,9 @@ spec:
                 operator: In
                 values:
                 - foreground-spot
+      volumes:
+      - name: secrets
+        emptyDir: {}
 
 ---
 apiVersion: autoscaling/v1
@@ -178,15 +204,38 @@ spec:
           annotations:
             "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
         spec:
+          initContainers:
+          - name: setenv
+            image: 585031190124.dkr.ecr.us-east-1.amazonaws.com/fortress:staging
+            imagePullPolicy: Always
+            command:
+            - python
+            - src/load/load.py
+            - kubernetes
+            - staging
+            - {{ project_name }}
+            envFrom:
+            - configMapRef:
+                name: secrets-config
+            volumeMounts:
+            - name: secrets
+              mountPath: /secrets
           containers:
           - name: {% raw %}{{ project_name }}{% endraw %}-cron-example
             image: {% raw %}{{ project_repo }}{% endraw %}:staging
             imagePullPolicy: Always
             envFrom:
             - configMapRef:
+                name: secrets-config
+            - configMapRef:
                 name: {% raw %}{{ project_name }}{% endraw %}-environment
+            volumeMounts:
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
             args: ["echo", "i am just an example"]
           restartPolicy: Never
+          serviceAccountName: {{ project_name }}
           affinity:
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -196,3 +245,6 @@ spec:
                     operator: In
                     values:
                     - background
+          volumes:
+          - name: secrets
+            emptyDir: {}
