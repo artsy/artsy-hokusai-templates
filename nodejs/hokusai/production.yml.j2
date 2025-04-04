@@ -29,57 +29,80 @@ spec:
         app.kubernetes.io/version: production
       name: {% raw %}{{ project_name }}{% endraw %}-web
     spec:
+      initContainers:
+      - name: setenv
+        image: 585031190124.dkr.ecr.us-east-1.amazonaws.com/fortress:production
+        imagePullPolicy: Always
+        command:
+        - python
+        - src/load/load.py
+        - kubernetes
+        - production
+        - {{ project_name }}
+        envFrom:
+        - configMapRef:
+            name: secrets-config
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
       containers:
-        - name: {% raw %}{{ project_name }}{% endraw %}-web
-          env:
-            - name: PORT
-              value: "8080"
-            - name: NODE_ENV
-              value: production
-            - name: DATADOG_TRACE_AGENT_HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
-            - name: DD_VERSION
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.labels['app.kubernetes.io/version']
-            - name: NODE_OPTIONS
-              value: "--max_old_space_size=256"
-          envFrom:
-            - configMapRef:
-                name: {% raw %}{{ project_name }}{% endraw %}-environment
-          image: {% raw %}{{ project_repo }}{% endraw %}:production
-          imagePullPolicy: Always
-          ports:
-            # k8s limits a port name to 15 characters
-            - name: {% raw %}{{ project_name }}{% endraw %}-http
-              containerPort: 8080
-          resources:
-            requests:
-              cpu: 200m
-              memory: 256Mi
-            limits:
-              memory: 1Gi
-          readinessProbe:
-            httpGet:
-              port: {% raw %}{{ project_name }}{% endraw %}-http
-              path: /health/ping
-              httpHeaders:
-                - name: X-Forwarded-Proto
-                  value: https
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-          lifecycle:
-            preStop:
-              exec:
-                command: ["sh", "-c", "sleep 5"]
+      - name: {% raw %}{{ project_name }}{% endraw %}-web
+        env:
+        - name: PORT
+          value: "8080"
+        - name: NODE_ENV
+          value: production
+        - name: DATADOG_TRACE_AGENT_HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: DD_VERSION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['app.kubernetes.io/version']
+        - name: NODE_OPTIONS
+          value: "--max_old_space_size=256"
+        envFrom:
+        - configMapRef:
+            name: secrets-config
+        - configMapRef:
+            name: {% raw %}{{ project_name }}{% endraw %}-environment
+        volumeMounts:
+        - name: secrets
+          mountPath: /secrets
+          readOnly: true
+        image: {% raw %}{{ project_repo }}{% endraw %}:production
+        imagePullPolicy: Always
+        ports:
+        # k8s limits a port name to 15 characters
+        - name: {% raw %}{{ project_name }}{% endraw %}-http
+          containerPort: 8080
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            port: {% raw %}{{ project_name }}{% endraw %}-http
+            path: /health/ping
+            httpHeaders:
+            - name: X-Forwarded-Proto
+              value: https
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        lifecycle:
+          preStop:
+            exec:
+              command: ["sh", "-c", "sleep 5"]
       dnsPolicy: ClusterFirst
       dnsConfig:
         options:
-          - name: ndots
-            value: "1"
+        - name: ndots
+          value: "1"
+      serviceAccountName: {{ project_name }}
       tolerations: # if ok to run on Spot instances
       - key: reserved
         operator: Equal
@@ -103,6 +126,9 @@ spec:
                 operator: In
                 values:
                 - foreground-spot
+      volumes:
+      - name: secrets
+        emptyDir: {}
 
 ---
 apiVersion: autoscaling/v1
@@ -131,10 +157,10 @@ metadata:
   namespace: default
 spec:
   ports:
-    - port: 8080
-      protocol: TCP
-      name: http
-      targetPort: {% raw %}{{ project_name }}{% endraw %}-http
+  - port: 8080
+    protocol: TCP
+    name: http
+    targetPort: {% raw %}{{ project_name }}{% endraw %}-http
   selector:
     app: {% raw %}{{ project_name }}{% endraw %}
     layer: application
@@ -151,16 +177,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: {% raw %}{{ project_name }}{% endraw %}.artsy.net
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: {% raw %}{{ project_name }}{% endraw %}-web-internal
-                port:
-                  name: http
+  - host: {% raw %}{{ project_name }}{% endraw %}.artsy.net
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {% raw %}{{ project_name }}{% endraw %}-web-internal
+            port:
+              name: http
 
 ---
 apiVersion: batch/v1
@@ -178,15 +204,38 @@ spec:
           annotations:
             "cluster-autoscaler.kubernetes.io/safe-to-evict": "false"
         spec:
+          initContainers:
+          - name: setenv
+            image: 585031190124.dkr.ecr.us-east-1.amazonaws.com/fortress:production
+            imagePullPolicy: Always
+            command:
+            - python
+            - src/load/load.py
+            - kubernetes
+            - production
+            - {{ project_name }}
+            envFrom:
+            - configMapRef:
+                name: secrets-config
+            volumeMounts:
+            - name: secrets
+              mountPath: /secrets
           containers:
-            - name: {% raw %}{{ project_name }}{% endraw %}-cron-example
-              image: {% raw %}{{ project_repo }}{% endraw %}:production
-              imagePullPolicy: Always
-              envFrom:
-                - configMapRef:
-                    name: {% raw %}{{ project_name }}{% endraw %}-environment
-              args: ["echo", "i am just an example"]
+          - name: {% raw %}{{ project_name }}{% endraw %}-cron-example
+            image: {% raw %}{{ project_repo }}{% endraw %}:production
+            imagePullPolicy: Always
+            envFrom:
+            - configMapRef:
+                name: secrets-config
+            - configMapRef:
+                name: {% raw %}{{ project_name }}{% endraw %}-environment
+            volumeMounts:
+            - name: secrets
+              mountPath: /secrets
+              readOnly: true
+            args: ["echo", "i am just an example"]
           restartPolicy: Never
+          serviceAccountName: {{ project_name }}
           affinity:
             nodeAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -196,3 +245,6 @@ spec:
                     operator: In
                     values:
                     - background
+          volumes:
+          - name: secrets
+            emptyDir: {}

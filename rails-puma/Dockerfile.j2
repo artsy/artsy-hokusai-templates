@@ -46,5 +46,5 @@ RUN mkdir /shared/config /shared/pids /shared/sockets
 RUN RAILS_ENV=production bundle exec rake assets:precompile \
   && rm -rf tmp/cache
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--"]
+ENTRYPOINT ["/usr/bin/dumb-init", "./scripts/load_secrets_and_run.sh"]
 CMD ["bundle", "exec", "puma", "-C", "config/puma.config"]
