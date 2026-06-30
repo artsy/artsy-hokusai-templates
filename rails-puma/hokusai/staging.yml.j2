@@ -141,7 +141,7 @@ spec:
         emptyDir: {}
 
 ---
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {% raw %}{{ project_name }}{% endraw %}-web
@@ -153,7 +153,13 @@ spec:
     name: {% raw %}{{ project_name }}{% endraw %}-web
   minReplicas: 1
   maxReplicas: 2
-  targetCPUUtilizationPercentage: 70
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
 
 ---
 apiVersion: apps/v1
@@ -272,7 +278,7 @@ spec:
         emptyDir: {}
 
 ---
-apiVersion: autoscaling/v1
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {% raw %}{{ project_name }}{% endraw %}-sidekiq
@@ -284,7 +290,13 @@ spec:
     name: {% raw %}{{ project_name }}{% endraw %}-sidekiq
   minReplicas: 1
   maxReplicas: 2
-  targetCPUUtilizationPercentage: 80
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
 
 ---
 apiVersion: v1
