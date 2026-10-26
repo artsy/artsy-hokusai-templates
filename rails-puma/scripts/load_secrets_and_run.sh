@@ -6,5 +6,5 @@ then
   . "$SECRETS_FILE"
 fi
 
-echo "Running command: $@"
+echo "Running command: $*"
 exec "$@"
